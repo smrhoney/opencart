@@ -150,7 +150,7 @@ function display(view) {
 		
 		$('.display').html('<b><?php echo $text_display; ?></b> <?php echo $text_list; ?> <b>/</b> <a onclick="display(\'grid\');"><?php echo $text_grid; ?></a>');
 		
-		$.totalStorage('display', 'list'); 
+		$.cookie('display', 'list'); 
 	} else {
 		$('.product-list').attr('class', 'product-grid');
 		
@@ -187,11 +187,11 @@ function display(view) {
 					
 		$('.display').html('<b><?php echo $text_display; ?></b> <a onclick="display(\'list\');"><?php echo $text_list; ?></a> <b>/</b> <?php echo $text_grid; ?>');
 		
-		$.totalStorage('display', 'grid');
+		$.cookie('display', 'grid');
 	}
 }
 
-view = $.totalStorage('display');
+view = $.cookie('display');
 
 if (view) {
 	display(view);

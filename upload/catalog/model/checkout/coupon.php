@@ -3,7 +3,7 @@ class ModelCheckoutCoupon extends Model {
 	public function getCoupon($code) {
 		$status = true;
 		
-		$coupon_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "coupon` WHERE code = '" . $this->db->escape($code) . "' AND ((date_start = '0000-00-00' OR date_start < NOW()) AND (date_end = '0000-00-00' OR date_end > NOW())) AND status = '1'");
+		$coupon_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "coupon WHERE code = '" . $this->db->escape($code) . "' AND ((date_start = '0000-00-00' OR date_start < NOW()) AND (date_end = '0000-00-00' OR date_end > NOW())) AND status = '1'");
 			
 		if ($coupon_query->num_rows) {
 			if ($coupon_query->row['total'] >= $this->cart->getSubTotal()) {
@@ -27,47 +27,27 @@ class ModelCheckoutCoupon extends Model {
 					$status = false;
 				}
 			}
-		
-			$product_data = array();
-		
-			// Products
+				
 			$coupon_product_data = array();
-		
-			$coupon_product_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "coupon_product` WHERE coupon_id = '" . (int)$coupon_query->row['coupon_id'] . "'");
-			
-			foreach ($coupon_product_query->rows as $product) {
-				$coupon_product_data[] = $product['product_id'];
+				
+			$coupon_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "coupon_product WHERE coupon_id = '" . (int)$coupon_query->row['coupon_id'] . "'");
+
+			foreach ($coupon_product_query->rows as $result) {
+				$coupon_product_data[] = $result['product_id'];
 			}
-			
-			// Categories
-			$coupon_category_data = array();
-			
-			$coupon_category_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "coupon_category` cc LEFT JOIN `" . DB_PREFIX . "category` c ON (cc.category_id = c.category_id) WHERE coupon_id = '" . (int)$coupon_query->row['coupon_id'] . "'");
-			
-			foreach ($coupon_category_query->rows as $category) {
-				$coupon_category_data[] = $category;
-			}			
-			
-			if ($coupon_product_data || $coupon_category_data) {
+				
+			if ($coupon_product_data) {
+				$coupon_product = false;
+					
 				foreach ($this->cart->getProducts() as $product) {
 					if (in_array($product['product_id'], $coupon_product_data)) {
-						$product_data[] = $product['product_id'];
-						
-						continue;
-					}
-					
-					foreach ($coupon_category_data as $category) {
-						$coupon_category_query = $this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "product_to_category` p2c LEFT JOIN `" . DB_PREFIX . "category` c ON (p2c.category_id = c.category_id) WHERE p2c.`product_id` = '" . (int)$product['product_id'] . "' AND c.`left` BETWEEN '" . (int)$category['left'] . "' AND '" . (int)$category['right'] . "'");
-						
-						if ($coupon_category_query->row['total']) {
-							$product_data[] = $product['product_id'];
+						$coupon_product = true;
 							
-							continue;
-						}						
+						break;
 					}
-				}	
-			
-				if (!$product_data) {
+				}
+					
+				if (!$coupon_product) {
 					$status = false;
 				}
 			}
@@ -84,7 +64,7 @@ class ModelCheckoutCoupon extends Model {
 				'discount'      => $coupon_query->row['discount'],
 				'shipping'      => $coupon_query->row['shipping'],
 				'total'         => $coupon_query->row['total'],
-				'product'       => $product_data,
+				'product'       => $coupon_product_data,
 				'date_start'    => $coupon_query->row['date_start'],
 				'date_end'      => $coupon_query->row['date_end'],
 				'uses_total'    => $coupon_query->row['uses_total'],

@@ -49,7 +49,7 @@ class ModelAffiliateAffiliate extends Model {
 	}
 	
 	public function getAffiliateByEmail($email) {
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "affiliate WHERE email = '" . $this->db->escape($email) . "'");
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "affiliate WHERE email = '" . (int)$email . "'");
 		
 		return $query->row;
 	}
